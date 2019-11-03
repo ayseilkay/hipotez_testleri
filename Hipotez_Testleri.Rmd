@@ -1,0 +1,478 @@
+---
+title: "Hipotez Testleri"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+#1.Tek Orneklem t Testi
+
+Tanim : Ortalamaya iliskin test yapmak ve guven araligini hesaplamak icin kullanilir. Tek orneklem t testini yapabilmek icin verisetinin normalligine bakmamiz gerekmektedir.Normallik varsayimi saglanmiyorsa bu testi kullanamayiz.
+
+
+
+## 1.1. Problem
+
+- Sitede gecirilen ortalama  süre 170 sn dir.Bunu test etmek istiyoruz.
+
+
+HİPOTEZ NEDİR?
+
+H0: M >= 170
+H1: M < 170 -> bu bizim savunduğumuz kısım
+
+
+## 1.2 Veri Seti
+
+```{r}
+#insanlarin sitede gecirdikleri zamani ölçtügümüzü varsayalim. Rastgele olarak 50 tanesini sectigimizi dusunelim.
+
+olcumler<-c(17,160,234,149,145,107,197,75,201,225,211,119,157,145,127,244,163,114,145,65,112,185,202,146,203,224,203,114,188,156,187,154,177,95,165,50,110,216,138,151,166,135,155,84,251,173,131,207,121,120)
+
+summary(olcumler)
+
+```
+## 1.3. Varsayim Kontrolu: Normalliği Nasıl Ölçeriz?
+
+
+```{r}
+
+#1. HİSTOGRAM
+
+hist(olcumler)
+
+
+# 2.Q-Q PLOT(OR QUANTİLE-QUANTİLE PLOT)
+library(ggpubr)
+
+ggqqplot(olcumler)
+
+# 3. SHAPİRO-WİLKS TESTİ
+
+shapiro.test(olcumler)
+
+# Not: Bu testler sonucunda dagilimin normal olduguna karar verdik.Boylece t testini gerceklestirebiliriz.
+
+```
+
+## 1.4. Hipotez Testi
+
+```{r}
+#Örnekten elde edilen x ortalama değerine ihtiyacımız var.
+#Yani mean değeri
+summary(olcumler)
+#mu=h0 hipotezin değeridir
+#alternative less dedik .çünkü 170 den az olması durumuna bakıyoruz
+#alfayı 0.05 kabul ettiğimiz için conf.level degeri 0.95 atadık
+t.test(olcumler, mu = 170, alternative = "less",conf.level = 0.95)
+
+#Yorumlamasi: p-value =0.01723 geldi.Yani H0 hipotezi reddedilir demektir.Alternatif hipotezimizi kabul ediyoruz demektir.Yani kullanicilar web sitemizde geçirdikleri süre istatiksel olarak %95 güvenilirlikle 170 den kucuktur seklinde yorum yapilir.
+```
+## 1.5 Alternatif Fonksiyon
+```{r}
+#alternatif fonksiyon ile bu hipotezi gerceklestirme 
+
+library(inferr)
+
+df <- data.frame(olcumler)
+#hipotez testi için bu fonksiyon daha kullanıslı olabilir
+infer_os_t_test(df,olcumler,mu=170,type=all)
+
+
+```
+
+## 1.Nonparametrik Tek Orneklem  Testi
+
+
+```{r}
+library(DescTools)
+SignTest(df$olcumler,mu=170)
+
+# Not: Burada dagilim parametrik olmadigindan dolayi yani varsayim saglanmadigindan dolayi medyan degeri kullanilir. 
+```
+
+#2. Tek Orneklem Oran  Testi
+
+Tanim: Oransal bir ifade test edilmek istendiginde yada guven araligi hesaplanmak istendiginde kullanilir.
+
+
+##2.1 Problem
+
+
+## 2.2 Veri Seti
+
+500 kisi dis mecrada reklamlara tiklamis
+40 tanesi alisveris yapmis 
+donusum orani: 40/500 = 0,08
+
+## 2.3 Varsayim
+z testi kullanilacagi icin 
+n> 30 n' in  30 dan buyuk olmalidir.
+
+## 2.4 Hipotez Testi
+
+```{r}
+# x -> basarili olan gozlem sayisi
+#n -> deneme sayisi
+#p-> olcmek istedigimiz oran sayisi
+#alternative = two.side,less,greater olabilir.
+prop.test(x=40,n=500,p=0.05,alternative = "two.side")
+
+
+# yorumlamasi: p-value 0.00292 cikmistir. Bu demektir ki H0 hipotezine konan deger 0.05 degerinin red edilir. Dolayisiyla bu oranimiz 0.05 olmadigini anladik.
+```
+#İki Orneklem Karsilastirma Testleri
+İki grup arasinda karsilastirma yapmak veya farklarin guven araligini vermek icin kullanilir.
+# 3.Bagimsiz İki Orneklem T Testi( AB Testi)
+##3.1. Problem
+
+Hipotez nedir?
+
+birinci kitleye ait ortalamayla ikinci kitleye ait ortalama eşittir yada değildiri ölçüyoruz.
+
+H0: M1=M2
+H1: M1!= M2
+
+##3.2. Veri Seti
+
+```{r}
+iki_ornek_veri<- data.frame(
+  A=c(30,27,21,27,29,30,20,20,27,32,35,22,24,23,25,27,23,27,23,25,21,18,24,26,33,26,27,28,19,25),
+  B=c(37,39,31,31,34,38,30,36,29,28,38,28,37,37,30,32,31,31,27,32,33,33,33,31,32,33,26,32,33,29))
+library(funModeling)
+profiling_num(iki_ornek_veri)
+
+ggplot(iki_ornek_veri,aes(A,B))+
+  geom_boxplot()
+
+View(iki_ornek_veri)
+
+
+A<- data.frame(degerler=iki_ornek_veri$A,sinif="A")
+B <- data.frame(degerler=iki_ornek_veri$B,sinif="B")
+
+AB <- rbind(A,B)
+ggplot(AB,aes(sinif,degerler,fill=sinif))+
+  geom_boxplot()
+# siniflarin arasindaki dagilimi boxplot araciligi ile gozlemlemis olduk.
+```
+## 3.3. Varsayim Kontrolü
+
+### 3.3.1. Normalligin İncelenmesi
+1.Görsel yöntemler kullanarak
+2.Numeric Yöntem Kullanarak
+
+```{r}
+ggplot(AB,aes(degerler,fill=sinif))+
+  geom_histogram(color="black",binwidth=5,alpha=0.5)+
+  facet_grid(sinif ~.)
+
+#geom density ide bu fonksiyona eklemek için y ekseninide standartlaştırmamız gerekmektedir.
+
+#görsel yöntem
+ggplot(AB,aes(degerler,fill=sinif))+
+  geom_histogram(aes(y=..density..),color="black",
+                 binwith=5,apha=0.5)+
+  geom_density(alpha=0.3)+facet_grid(sinif ~.)
+
+#numeric test
+apply(iki_ornek_veri,2,shapiro.test)
+
+AB[AB$sinif=="A",]$degerler
+shapiro.test(AB[AB$sinif=="B",]$degerler)
+
+
+
+```
+
+### 3.3.2. Varyans Homojenliğinin İncelenmesi
+```{r}
+library(car)
+leveneTest(AB$degerler ~ AB$sinif,center=mean)
+
+#yorumlanmasi: gruplarin anakitlelere iliskin varyanslari arasinda istatistiksel olarak anlamli bir fark yoktur der.Yani h0 reddedilemez. H0 reddedildiginde ise nonparamtrik hipotez testleri uygulanir.
+```
+
+
+## 3.4. Hipotez Testi
+
+```{r}
+#varsayimin saglandigini biliyoruz.Bunun icin var.equal=True argumanini ekleriz.
+t.test(AB$degerler ~AB$sinif,var.equal=TRUE)
+
+#yorumlamasi: istatistiksel olarak %95 guvenilirlikle bu iki grup arasinda anlamli bir fark oldugunu soyleyebiliriz.
+```
+## 3.5. Alternatif Fonksiyon
+
+
+```{r}
+# bagımsız iki örneklem arasında istatiksel olarak anlamlı bir fark var mı yok mu test ediyoruz.
+infer_ts_ind_ttest(data=AB,x=sinif,y=degerler)
+
+
+```
+## 3.6. Nonparametrik Karsiligi Mann - Whitney U Testi
+
+```{r}
+#varsayimlar saglanmadiginda,  normallik ve varyans homojenligi varsayimlari saglanmadiginda parametrik olmayan testleri kullaniriz.
+wilcox.test(iki_ornek_veri$A,iki_ornek_veri$B)
+
+#yorumlamasi: p-value degeri 1e-07 dir.Yani p-value<0.05 oldugu icin h0 reddedilmis olur.Yani ortalamalar arasinda fark vardır demektir.
+```
+
+#4. Bagımlı İki Örneklem T Testi 
+
+Tanim: Gozlem birimlerinin birbirlerine yonelik bagimliligini ifade eden durumlar soz konusu oldugunda bagimli iki orneklem testleri kullanilmaktadir.
+
+## 4.1 Problem
+
+- Pazarlama yada satis personelimize 3 ay boyunca egitim verildigini dusunelim. Verilmis olan bu egitimin somut bir katkisini gorebilirmiyiz. Bu egitimin basarili olup olmadigini degerlendirmek istiyorum.
+
+Hipotez nedir?
+
+H0: M0 = MS
+H1: M0 != MS
+
+##4.2 Veri Seti
+
+```{r}
+oncesi <- c(123,119,119,116,123,123,121,120,117,118,121,121,123,119,121,118,124,121,125,115,115,119,118,121,117,117,120,121,117,117,118,117,123,118,124,121,115,118,125,115)
+
+sonrasi<- c(118,127,122,132,129,123,129,132,128,130,128,138,140,130,134,134,124,140,134,129,129,138,134,124,122,126,133,127,130,130,130,132,117,130,125,129,133,120,127,123)
+
+
+A<- data.frame(ort_satis=oncesi, ONCE_SONRA="ONCE")
+B<- data.frame(ort_satis=sonrasi,ONCE_SONRA="SONRA")
+
+once_sonra<- rbind(A,B)
+library(dplyr)
+once_sonra %>%
+  group_by(ONCE_SONRA)%>%
+  summarise(mean(ort_satis),sd(ort_satis),var(ort_satis))
+library(ggplot2)
+ggplot(once_sonra,aes(ONCE_SONRA,ort_satis))+
+  geom_boxplot()
+
+```
+
+## 4.3. Normallik Varsayimi
+
+```{r}
+apply(data.frame(oncesi,sonrasi),2,shapiro.test)
+```
+## 4.4 Hipotez Testi
+
+```{r}
+t.test(once_sonra$ort_satis ~  once_sonra$ONCE_SONRA,paired=TRUE)
+#yorumlamasi: test sonusunda istatistiksel olarak %95 guvenilirlikle fark vardir.H0 hipotezi reddedilmistir.
+```
+
+## 4.5 Alternatif Fonksiyon
+
+```{r}
+df<- data.frame(oncesi,sonrasi)
+library(inferr)
+infer_ts_paired_ttest(df,x=oncesi,y=sonrasi)
+
+```
+## 4.6 Nonparametrik Karsiligi : Wilcoxan Sign- Rank- Nonparametrik Bagimli İki Örneklem Testi
+
+```{r}
+wilcox.test(df$oncesi,df$sonrasi,paired=TRUE)
+
+
+```
+
+#5. İki Örneklem Oran Testi(AB Testlerinin Oransal Karsilastirmasi)
+
+Tanim: İki oran arasindaki farkin anlamliliginin testi icin kullanilir.
+
+#5.1 Problem
+
+Butonların renkleri değiştirilmek isteniyor
+yesil mi kırmızı mı?
+
+##5.2 Veri Seti
+
+Yesil Buton: 300 tiklanma 1000 goruntulenme
+Kirmizi Buton: 250 tiklanma 1100 goruntulenme
+
+##5.3 Varsayim
+varsayım tek örneklem oran testinde oldugu gibi burdada n nin 30 dan büüyük olması gerekiyor
+
+##5.4 Hipotez Testi
+
+```{r}
+prop.test(x=c(300,250),n=c(1000,1100))
+#yorumlanmasi: h0 hipotezi reddedilir.Bu iki örnek arasinda anlamli bir fark vardir denir.
+```
+
+#6. Tek Yonlu Varyans Analizi
+Varyans Analizi Tanim: İki yada daha fazla grup ortalamasi arasinda istatistiksel olarak anlamli farklilik olup olmadiginin ögrenilmek istenildigi durumlarda kullanilir.ANOVA testi olarak adlandirilir.
+
+İkiden fazla grup karsilastirilmak istendiginde kullanilir
+##6.1 Problem
+
+Hipotez Nedir?
+Anasyfa içerik stratejisi belirlemek istiyoruz
+
+H0: M1=M2=M3 (grup ortalamalari arasinda istatiksel anlamda farklılık yoktur)
+H1: Fark vardir
+
+## 6.2 Veri Seti
+```{r}
+
+A<-c(28,33,30,29,28,29,27,31,30,32,28,33,25,29,27,31,31,30,31,34,30,32,31,34,28,32,31,28,33,29)
+B<-c(31,32,30,30,33,32,34,27,36,30,31,30,38,29,30,34,34,31,35,35,33,30,28,29,26,37,31,28,34,33)
+C<-c(40,33,38,41,42,43,38,35,39,39,36,34,35,40,38,36,39,36,33,35,38,35,40,40,39,38,38,43,40,42)
+
+#Veriyi düzenliyoruz
+A<- data.frame(SURE=A , GRUP="A")
+B<- data.frame(SURE=B, GRUP="B")
+C<- data.frame(SURE=C, GRUP="C")
+
+veri<- rbind(A,B)
+veri<- rbind(veri,C)
+
+library(dplyr)
+veri %>%
+  group_by(GRUP)%>%
+  summarise(mean(SURE),median(SURE),sd(SURE))
+library(ggplot2)
+ggplot(veri,aes(GRUP,SURE,fill=GRUP))+
+  geom_boxplot()
+```
+## 6.3 Varsayim
+
+### 6.3.1. Normal Dagilim
+```{r}
+shapiro.test(veri[veri$GRUP=="A",]$SURE)
+shapiro.test(veri[veri$GRUP=="B",]$SURE)
+shapiro.test(veri[veri$GRUP=="C",]$SURE)
+
+#yorumlanmasi: teorik dagilim ile ornekten elde edilen dagilimin aralarinda istatistiksel olarak anlamli bir fark olmadigi(h0) durumu reddedilememistir.
+```
+
+
+### 6.3.2. Varyans Homojenligi Testi
+```{r}
+#normal dagilim saglandiginda bartlett testi kullanilir
+bartlett.test(SURE ~ GRUP,data=veri)
+library(car)
+# süphe oldugunda yada daha dayanikli bir test yapilmak istendiginde leveneTest kullanilir
+leveneTest(SURE ~GRUP,data=veri)
+
+#yorumlanmasi: Varyanslari arasinda istatistiki olarak anlamli bir fark olmadigini anlatıyor.H0 hipotezi saglaniyor.p-value(F degeri)> 0.05 den
+```
+## 6.4 Hipotez Testi
+
+```{r}
+aov(SURE~ GRUP,data = veri)
+
+summary(aov(SURE~GRUP ,data=veri))
+
+#yorumlanmasi:F istatistigi 2e-16 olarak cikmistir.Yani 2e-16<0.05 oldugu icin H0 hipotezi reddedilmistir.Yani istatistiksel olarak anlamli bir farklılık vardir.
+#Sitede gecirilen sürelerin ,sitedeki iceriklerle anlamli  bir fark vardir.
+```
+## 6.5 İkili Karşılaştırma
+```{r}
+#ANOVA ciktisi sonrasinda gruplardaki anlamli farkliligi ispat ettikten sonra bu farkliligin hangi gruptan kaynaklandigina bakacagiz
+
+TukeyHSD(aov(SURE ~GRUP,data = veri))
+
+#yorumlanmasi: Birbirine yakin gibi gorunen gruplarinda  aralarinda istatistiksel anlamli bir farklilik oldugu bilgisine erismis olduk
+```
+## 6.6 Alternatif Fonksiyon
+
+```{r}
+library(inferr)
+infer_oneway_anova(veri,SURE,GRUP)
+```
+
+## 6.7. Nonparametrik Varyans Analizi- Nonparametrik Karsilik: Kruskal - Wallis H
+
+Varsayımlar saglanmadiginda yapılır.
+
+```{r}
+kruskal.test(SURE ~GRUP,veri)
+```
+Notlar:
+Parametrik Yontemler       &     Parametrik Olmayan Yontemler
+Bagimsiz iki Örneklem t testi     ->Mann-Whitney U
+Bagimli iki Örneklem t testi      ->Wilcoxon Sign-Rank
+Tek yönlü bagimsiz- olcumlu ANOVA ->Kruskal- Wallis H
+Tek yönlü tekrarli - olcumlu ANOVA->Friedman testi
+Pearson Korelasyon testi          ->Spearman Korelasyon Testi
+
+
+# 7. Korelasyon
+Tanim: Degiskenlerin birbirleriyle olan iliskilerini incelemeye dayanir.
+Degiskenler arasindaki iliski, bu iliskinin yonu ve siddeti ile ilgili bilgiler saglayan istatistiksel bir yontemdir.
+
+## 7.1 Problem
+
+## 7.2. Veri Seti
+```{r}
+df<- mtcars
+head(df)
+cor(df)
+library(ggpubr)
+
+ggscatter(df,x="mpg",y="wt",add="reg.line",
+          conf.int = TRUE,
+          cor.coef = TRUE,
+          cor.method = "pearson")
+
+```
+
+## 7.3. Varsayim
+
+```{r}
+
+shapiro.test(df$mpg)
+shapiro.test(df$wt)
+
+```
+## 7.4. Hipotez Testi ve Test İstatisliği
+
+```{r}
+
+cor.test(df$mpg,df$wt
+         ,method = "pearson")
+#yorumlanmasi: Degiskenler arasindaki iliski vardır. Aralarinda bir korelasyon vardir denir. Bu iliski -0.87 degerine bakarak negatif yonde anlamli bir iliski vardir denir.
+```
+## 7.5. Nonparametrik Korelasyon Testi
+
+
+```{r}
+  
+cor.test(df$mpg,df$wt,method = "spearman")
+
+cor.test(df$mpg,df$wt,method = "kendall")
+```
+## 7.6. Korelasyon Matrisi
+
+```{r}
+cor(df)# korelasyon matrisi verir.Ama olmayan degerleride işin içine katar
+
+cor(df,use="complete.obs")# sadce var olan gözlemler üzerinden korelasyon hesabı yapar
+
+library(Hmisc)
+rcorr(as.matrix(df))#degiskenler arasindaki p value degerlerini verir
+
+```
+
+##7.7 Gelismis Korelasyon Matrisi
+
+```{r}
+
+library(PerformanceAnalytics)
+df<- mtcars[,c(1,3,4,5,6,7)]
+chart.Correlation(df,histogram = TRUE,pch=19)
+
+
+```
+
+
+
+
+
